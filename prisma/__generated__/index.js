@@ -181,6 +181,10 @@ const config = {
         "fromEnvVar": null,
         "value": "windows",
         "native": true
+      },
+      {
+        "fromEnvVar": null,
+        "value": "debian-openssl-3.0.x"
       }
     ],
     "previewFeatures": [],
@@ -198,6 +202,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -206,8 +211,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"./__generated__\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"POSTGRES_URI\")\n}\n\nmodel User {\n  id String @id @default(uuid())\n\n  email    String @unique\n  password String\n\n  displayName String\n  picture     String?\n\n  role UserRole @default(REGULAR)\n\n  isVerified         Boolean @default(false) @map(\"is_verified\")\n  isTwoFactorEnabled Boolean @default(false) @map(\"is_two_factor_enabled\")\n\n  method AuthMethod\n\n  accounts Account[]\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@map(\"users\")\n}\n\nmodel Account {\n  id String @id @default(uuid())\n\n  type     String\n  provider String\n\n  refreshToken String? @map(\"refresh_token\")\n  accessToken  String? @map(\"access_token\")\n  expiresAt    Int     @map(\"expires_at\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  user   User?   @relation(fields: [userId], references: [id])\n  userId String? @map(\"user_id\")\n\n  @@map(\"accounts\")\n}\n\nmodel Token {\n  id String @id @default(uuid())\n\n  email     String\n  token     String    @unique\n  type      TokenType\n  expiresIn DateTime  @map(\"expires_in\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@map(\"tokens\")\n}\n\nenum UserRole {\n  REGULAR\n  ADMIN\n}\n\nenum AuthMethod {\n  CREDENTIALS\n  GOOGLE\n  YANDEX\n}\n\nenum TokenType {\n  VERIFICATION\n  TWO_FACTOR\n  PASSWORD_RESET\n}\n",
-  "inlineSchemaHash": "6f0e46f926020bffcdecfd92d9750997884df497634b4c3ac4fa06d2c16d75d8",
+  "inlineSchema": "generator client {\n  provider      = \"prisma-client-js\"\n  binaryTargets = [\"native\", \"debian-openssl-3.0.x\"]\n  output        = \"./__generated__\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"POSTGRES_URI\")\n}\n\nmodel User {\n  id String @id @default(uuid())\n\n  email    String @unique\n  password String\n\n  displayName String\n  picture     String?\n\n  role UserRole @default(REGULAR)\n\n  isVerified         Boolean @default(false) @map(\"is_verified\")\n  isTwoFactorEnabled Boolean @default(false) @map(\"is_two_factor_enabled\")\n\n  method AuthMethod\n\n  accounts Account[]\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  @@map(\"users\")\n}\n\nmodel Account {\n  id String @id @default(uuid())\n\n  type     String\n  provider String\n\n  refreshToken String? @map(\"refresh_token\")\n  accessToken  String? @map(\"access_token\")\n  expiresAt    Int     @map(\"expires_at\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  updatedAt DateTime @updatedAt @map(\"updated_at\")\n\n  user   User?   @relation(fields: [userId], references: [id])\n  userId String? @map(\"user_id\")\n\n  @@map(\"accounts\")\n}\n\nmodel Token {\n  id String @id @default(uuid())\n\n  email     String\n  token     String    @unique\n  type      TokenType\n  expiresIn DateTime  @map(\"expires_in\")\n\n  createdAt DateTime @default(now()) @map(\"created_at\")\n\n  @@map(\"tokens\")\n}\n\nenum UserRole {\n  REGULAR\n  ADMIN\n}\n\nenum AuthMethod {\n  CREDENTIALS\n  GOOGLE\n  YANDEX\n}\n\nenum TokenType {\n  VERIFICATION\n  TWO_FACTOR\n  PASSWORD_RESET\n}\n",
+  "inlineSchemaHash": "c79a18cf4ed88fc95b1d21f50cb4a49da0af9ef28d537a82ab14654a468b34e2",
   "copyEngine": true
 }
 
@@ -247,6 +252,10 @@ Object.assign(exports, Prisma)
 // file annotations for bundling tools to include these files
 path.join(__dirname, "query_engine-windows.dll.node");
 path.join(process.cwd(), "prisma/__generated__/query_engine-windows.dll.node")
+
+// file annotations for bundling tools to include these files
+path.join(__dirname, "libquery_engine-debian-openssl-3.0.x.so.node");
+path.join(process.cwd(), "prisma/__generated__/libquery_engine-debian-openssl-3.0.x.so.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
 path.join(process.cwd(), "prisma/__generated__/schema.prisma")
