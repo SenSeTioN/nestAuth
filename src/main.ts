@@ -13,7 +13,14 @@ import { parseBoolean } from './libs/common/utils/parse-boolean.util'
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule)
 	const config = app.get(ConfigService)
-	const redis = new IORedis(config.getOrThrow<string>('REDIS_URI'))
+	const redis = new IORedis({
+		port: config.getOrThrow<number>('REDIS_PORT'),
+		host: config.getOrThrow<string>('REDIS_HOST'),
+		username: config.getOrThrow<string>('REDIS_USER'),
+		password: config.getOrThrow<string>('REDIS_PASSWORD'),
+		db: 0,
+		maxRetriesPerRequest: 2
+	})
 
 	app.use(cookieParser(config.getOrThrow<string>('COOKIES_SECRET')))
 	app.useGlobalPipes(

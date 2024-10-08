@@ -34,3 +34,41 @@ volumes: # Определение томов
 
 networks: # Определение сетей
     backend: # Сеть для внутреннего взаимодействия сервисов
+
+# redis: # Определение сервиса Redis
+#         container_name: redis # Имя контейнера для Redis
+#         image: redis:latest # Используемый образ Redis
+#         ports: # Настройка портов
+#             - ${REDIS_PORT}:${REDIS_PORT} # Проброс порта ${REDIS_PORT}  контейнера на порт ${REDIS_PORT} хоста (данные берутся из .env)
+#         environment:
+#             - REDIS_PASSWORD=${REDIS_PASSWORD} # Пароль для Redis (имя пользователя по умолчанию - default).
+#         deploy: # Ограничения и резервирование ресурсов:
+#             resources:
+#                 limits: # Лимиты: 0.50 CPU и 512M памяти.
+#                     cpus: '0.50'
+#                     memory: 512M
+#                 reservations: # Резервирование: 0.25 CPU и 256M памяти.
+#                     cpus: '0.25'
+#                     memory: 256M
+#         command: >
+#             sh -c '
+#             mkdir -p /usr/local/etc/redis &&
+#             echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+#             echo "requirepass $REDIS_PASSWORD" >> /usr/local/etc/redis/redis.conf &&
+#             echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+#             echo "appendfsync everysec" >> /usr/local/etc/redis/redis.conf &&
+#             echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+#             redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+#             '
+#         healthcheck: # Проверка здоровья сервиса:
+#             test: ['CMD', 'redis-cli', '-a', '$REDIS_PASSWORD', 'ping'] # Команда redis-cli ping с паролем.
+#             interval: 30s # Интервал 30 секунд, таймаут 10 секунд, 5 попыток.
+#             timeout: 10s
+#             retries: 5
+#         restart: unless-stopped # Политика перезапуска unless-stopped
+#         tty: true # Включены для интерактивного доступа.
+#         stdin_open: true # Включены для интерактивного доступа.
+#         volumes: # Хранение данных Redis в локальной директории ./redisdata. Таким образом, ваши данные будут сохраняться в локальной папке, и вы не потеряете их, даже если контейнер Redis случайно удалится или вы потеряете к нему доступ. Главное — обеспечить сохранность данных из папки redisdata
+#             - redis_data:/data # Хранение данных Redis в томе redis_data
+#         networks: # Настройка сетей
+#             - backend # Подключение к сети backend
