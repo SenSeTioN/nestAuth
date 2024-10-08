@@ -121,6 +121,13 @@ declare interface BinaryTargetsEnvValue {
     native?: boolean;
 }
 
+declare interface BoundDriverAdapter extends Queryable, WithTransaction {
+    /**
+     * Optional method that returns extra connection info
+     */
+    getConnectionInfo?(): Result_4<ConnectionInfo>;
+}
+
 export declare type Call<F extends Fn, P> = (F & {
     params: P;
 })['returns'];
@@ -868,11 +875,7 @@ export declare namespace DMMF {
     }
 }
 
-export declare interface DriverAdapter extends Queryable {
-    /**
-     * Starts new transaction.
-     */
-    startTransaction(): Promise<Result_4<Transaction>>;
+export declare interface DriverAdapter extends Queryable, WithTransactionDeprecated, WithTransaction {
     /**
      * Optional method that returns extra connection info
      */
@@ -1184,7 +1187,7 @@ declare type Error_2 = {
     message: string;
 };
 
-declare interface ErrorCapturingDriverAdapter extends DriverAdapter {
+declare interface ErrorCapturingDriverAdapter extends BoundDriverAdapter {
     readonly errorRegistry: ErrorRegistry;
 }
 
@@ -1298,6 +1301,8 @@ declare namespace Extensions_2 {
     export {
         InternalArgs,
         DefaultArgs,
+        GetPayloadResultExtensionKeys,
+        GetPayloadResultExtensionObject,
         GetPayloadResult,
         GetSelect,
         GetOmit,
@@ -1404,7 +1409,7 @@ export declare type GetFindResult<P extends OperationPayload, A, ClientOptions> 
 } & Record<string, unknown> | {
     include: infer I extends object;
 } & Record<string, unknown> ? {
-    [K in keyof S | keyof I as (S & I)[K] extends false | undefined | null ? never : K]: (S & I)[K] extends object ? P extends SelectablePayloadFields<K, (infer O)[]> ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions>[] : never : P extends SelectablePayloadFields<K, infer O | null> ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions> | SelectField<P, K> & null : never : K extends '_count' ? Count<GetFindResult<P, (S & I)[K], ClientOptions>> : never : P extends SelectablePayloadFields<K, (infer O)[]> ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions>[] : never : P extends SelectablePayloadFields<K, infer O | null> ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions> | SelectField<P, K> & null : never : P extends {
+    [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]: (S & I)[K] extends object ? P extends SelectablePayloadFields<K, (infer O)[]> ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions>[] : never : P extends SelectablePayloadFields<K, infer O | null> ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions> | SelectField<P, K> & null : never : K extends '_count' ? Count<GetFindResult<P, (S & I)[K], ClientOptions>> : never : P extends SelectablePayloadFields<K, (infer O)[]> ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions>[] : never : P extends SelectablePayloadFields<K, infer O | null> ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions> | SelectField<P, K> & null : never : P extends {
         scalars: {
             [k in K]: infer O;
         };
@@ -1423,14 +1428,18 @@ export declare type GetGroupByResult<P extends OperationPayload, A> = A extends 
     [K in A['by']]: P['scalars'][K];
 }> : {}[];
 
-export declare type GetOmit<BaseKeys extends string, R extends InternalArgs['result'][string]> = {
-    [K in (string extends keyof R ? never : keyof R) | BaseKeys]?: boolean;
+export declare type GetOmit<BaseKeys extends string, R extends InternalArgs['result'][string], ExtraType = never> = {
+    [K in (string extends keyof R ? never : keyof R) | BaseKeys]?: boolean | ExtraType;
 };
 
-export declare type GetPayloadResult<Base extends Record<any, any>, R extends InternalArgs['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> = unknown extends R ? Base : {
-    [K in KR | keyof Base]: K extends KR ? R[K] extends () => {
+export declare type GetPayloadResult<Base extends Record<any, any>, R extends InternalArgs['result'][string]> = Omit<Base, GetPayloadResultExtensionKeys<R>> & GetPayloadResultExtensionObject<R>;
+
+export declare type GetPayloadResultExtensionKeys<R extends InternalArgs['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> = KR;
+
+export declare type GetPayloadResultExtensionObject<R extends InternalArgs['result'][string]> = {
+    [K in GetPayloadResultExtensionKeys<R>]: R[K] extends () => {
         compute: (...args: any) => infer C;
-    } ? C : never : Base[K];
+    } ? C : never;
 };
 
 export declare function getPrismaClient(config: GetPrismaClientConfig): {
@@ -1834,6 +1843,8 @@ declare enum IsolationLevel {
     Serializable = "Serializable"
 }
 
+declare function isSkip(value: unknown): value is Skip;
+
 export declare type ITXClientDenyList = (typeof denylist)[number];
 
 export declare const itxClientDenyList: readonly (string | symbol)[];
@@ -1856,7 +1867,7 @@ export declare type JsArgs = {
     [argName: string]: JsInputValue;
 };
 
-export declare type JsInputValue = null | undefined | string | number | boolean | bigint | Uint8Array | Date | DecimalJsLike | ObjectEnumValue | RawParameters | JsonConvertible | FieldRef<string, unknown> | JsInputValue[] | {
+export declare type JsInputValue = null | undefined | string | number | boolean | bigint | Uint8Array | Date | DecimalJsLike | ObjectEnumValue | RawParameters | JsonConvertible | FieldRef<string, unknown> | JsInputValue[] | Skip | {
     [key: string]: JsInputValue;
 };
 
@@ -2214,7 +2225,7 @@ export declare const objectEnumValues: {
 
 declare const officialPrismaAdapters: readonly ["@prisma/adapter-planetscale", "@prisma/adapter-neon", "@prisma/adapter-libsql", "@prisma/adapter-d1", "@prisma/adapter-pg", "@prisma/adapter-pg-worker"];
 
-export declare type Omission = Record<string, boolean>;
+export declare type Omission = Record<string, boolean | Skip>;
 
 declare type Omit_2<T, K extends string | number | symbol> = {
     [P in keyof T as P extends K ? never : P]: T[P];
@@ -2854,8 +2865,15 @@ export declare type SelectField<P extends SelectablePayloadFields<any, any>, K e
     composites: Record<K, any>;
 } ? P['composites'][K] : never;
 
-declare type Selection_2 = Record<string, boolean | JsArgs>;
+declare type Selection_2 = Record<string, boolean | Skip | JsArgs>;
 export { Selection_2 as Selection }
+
+declare class Skip {
+    constructor(param?: symbol);
+    ifUndefined<T>(value: T | undefined): T | Skip;
+}
+
+export declare const skip: Skip;
 
 /**
  * An interface that represents a span. A span represents a single operation
@@ -3209,6 +3227,13 @@ declare namespace Transaction_2 {
     }
 }
 
+declare interface TransactionContext extends Queryable {
+    /**
+     * Starts new transaction.
+     */
+    startTransaction(): Promise<Result_4<Transaction>>;
+}
+
 declare type TransactionHeaders = {
     traceparent?: string;
 };
@@ -3246,6 +3271,9 @@ declare namespace Types {
         Extensions_2 as Extensions,
         Utils,
         Public_2 as Public,
+        isSkip,
+        Skip,
+        skip,
         UnknownTypedSql,
         OperationPayload as Payload
     }
@@ -3349,5 +3377,21 @@ declare type WasmLoadingConfig = {
      */
     getQueryEngineWasmModule: () => Promise<unknown>;
 };
+
+declare interface WithTransaction extends Queryable {
+    /**
+     * Starts new transaction.
+     * If `startTransaction` is not defined, `transactionContext` must be defined.
+     */
+    transactionContext?(): Promise<Result_4<TransactionContext>>;
+}
+
+declare interface WithTransactionDeprecated extends Queryable {
+    /**
+     * Starts new transaction.
+     * @deprecated Use `transactionContext` instead.
+     */
+    startTransaction?(): Promise<Result_4<Transaction>>;
+}
 
 export { }

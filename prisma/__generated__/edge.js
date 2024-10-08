@@ -13,6 +13,7 @@ const {
   empty,
   join,
   raw,
+  skip,
   Decimal,
   Debug,
   objectEnumValues,
@@ -31,12 +32,12 @@ exports.Prisma = Prisma
 exports.$Enums = {}
 
 /**
- * Prisma Client JS version: 5.19.1
- * Query Engine version: 69d742ee20b815d88e17e54db4a2a7a3b30324e3
+ * Prisma Client JS version: 5.20.0
+ * Query Engine version: 06fc58a368dc7be9fbbbe894adf8d445d208c284
  */
 Prisma.prismaVersion = {
-  client: "5.19.1",
-  engine: "69d742ee20b815d88e17e54db4a2a7a3b30324e3"
+  client: "5.20.0",
+  engine: "06fc58a368dc7be9fbbbe894adf8d445d208c284"
 }
 
 Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
@@ -74,6 +75,8 @@ Prisma.NullTypes = {
   JsonNull: objectEnumValues.classes.JsonNull,
   AnyNull: objectEnumValues.classes.AnyNull
 }
+
+
 
 
 
@@ -195,13 +198,12 @@ const config = {
     "schemaEnvPath": "../../.env"
   },
   "relativePath": "..",
-  "clientVersion": "5.19.1",
-  "engineVersion": "69d742ee20b815d88e17e54db4a2a7a3b30324e3",
+  "clientVersion": "5.20.0",
+  "engineVersion": "06fc58a368dc7be9fbbbe894adf8d445d208c284",
   "datasourceNames": [
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {

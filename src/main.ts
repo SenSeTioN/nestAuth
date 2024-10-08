@@ -18,7 +18,6 @@ async function bootstrap() {
 		host: config.getOrThrow<string>('REDIS_HOST'),
 		username: config.getOrThrow<string>('REDIS_USER'),
 		password: config.getOrThrow<string>('REDIS_PASSWORD'),
-		db: 0,
 		maxRetriesPerRequest: 2
 	})
 

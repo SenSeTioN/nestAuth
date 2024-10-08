@@ -255,6 +255,8 @@ export namespace Prisma {
   export import raw = runtime.raw
   export import Sql = runtime.Sql
 
+
+
   /**
    * Decimal.js
    */
@@ -281,8 +283,8 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 5.19.1
-   * Query Engine version: 69d742ee20b815d88e17e54db4a2a7a3b30324e3
+   * Prisma Client JS version: 5.20.0
+   * Query Engine version: 06fc58a368dc7be9fbbbe894adf8d445d208c284
    */
   export type PrismaVersion = {
     client: string
